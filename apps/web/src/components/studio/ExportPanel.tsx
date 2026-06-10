@@ -1,19 +1,28 @@
 "use client";
 
 import { useState } from "react";
-import type { ArchitectureGraph } from "@architecture-ai/core";
+import type { ArchitectureGraph, DataModelPackage } from "@architecture-ai/core";
 import { Button } from "@/components/ui/button";
 import { Download, Copy, Check, FileJson, FileCode, FileText } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const FORMATS = [
-  { id: "json", label: "JSON", desc: "Full architecture graph", icon: FileJson },
-  { id: "mermaid", label: "Mermaid", desc: "Diagram syntax", icon: FileCode },
-  { id: "terraform", label: "Terraform", desc: "IaC stub", icon: FileCode },
-  { id: "summary", label: "Summary", desc: "Client-ready doc", icon: FileText },
+  { id: "json", label: "JSON", desc: "Architecture graph", icon: FileJson, needsModel: false },
+  { id: "mermaid", label: "Mermaid", desc: "Diagram syntax", icon: FileCode, needsModel: false },
+  { id: "terraform", label: "Terraform", desc: "IaC stub", icon: FileCode, needsModel: false },
+  { id: "summary", label: "Summary", desc: "Client-ready doc", icon: FileText, needsModel: false },
+  { id: "dbt", label: "dbt", desc: "Model SQL stubs", icon: FileCode, needsModel: true },
+  { id: "adf", label: "ADF", desc: "Pipeline JSON stub", icon: FileCode, needsModel: false },
+  { id: "databricks_workflow", label: "Databricks", desc: "Workflow JSON stub", icon: FileCode, needsModel: false },
 ];
 
-export function ExportPanel({ graph }: { graph: ArchitectureGraph }) {
+export function ExportPanel({
+  graph,
+  dataModel,
+}: {
+  graph: ArchitectureGraph;
+  dataModel?: DataModelPackage;
+}) {
   const [content, setContent] = useState<string | null>(null);
   const [format, setFormat] = useState("json");
   const [loading, setLoading] = useState(false);
@@ -26,7 +35,7 @@ export function ExportPanel({ graph }: { graph: ArchitectureGraph }) {
       const res = await fetch("/api/export", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ graph, format: fmt }),
+        body: JSON.stringify({ graph, data_model: dataModel, format: fmt }),
       });
       const data = await res.json();
       if (res.ok) setContent(data.content);
@@ -44,7 +53,16 @@ export function ExportPanel({ graph }: { graph: ArchitectureGraph }) {
 
   const handleDownload = () => {
     if (!content) return;
-    const ext = format === "json" ? "json" : format === "mermaid" ? "md" : format === "terraform" ? "tf" : "md";
+    const extMap: Record<string, string> = {
+      json: "json",
+      mermaid: "md",
+      terraform: "tf",
+      summary: "md",
+      dbt: "sql",
+      adf: "json",
+      databricks_workflow: "json",
+    };
+    const ext = extMap[format] ?? "txt";
     const blob = new Blob([content], { type: "text/plain" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -59,16 +77,19 @@ export function ExportPanel({ graph }: { graph: ArchitectureGraph }) {
       <div className="grid grid-cols-2 gap-2">
         {FORMATS.map((f) => {
           const Icon = f.icon;
+          const disabled = f.needsModel && !dataModel;
           return (
             <button
               key={f.id}
               onClick={() => handleExport(f.id)}
-              disabled={loading}
+              disabled={loading || disabled}
+              title={disabled ? "Requires data model (Model tab)" : undefined}
               className={cn(
                 "p-3 rounded-[var(--radius-sm)] border text-left transition-all duration-200",
                 format === f.id
                   ? "border-[var(--accent)] bg-[var(--accent-muted)]"
-                  : "border-[var(--border-subtle)] hover:border-[var(--border)] hover:bg-[var(--card-hover)]"
+                  : "border-[var(--border-subtle)] hover:border-[var(--border)] hover:bg-[var(--card-hover)]",
+                disabled && "opacity-50 cursor-not-allowed"
               )}
             >
               <Icon className="w-4 h-4 text-[var(--accent)] mb-2" />

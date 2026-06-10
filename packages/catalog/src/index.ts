@@ -2,6 +2,7 @@ export * from "./databricks.js";
 export * from "./aws.js";
 export * from "./platform-knowledge/index.js";
 export * from "./icons/index.js";
+export * from "./domain-packs/index.js";
 
 import { DATABRICKS_COMPONENTS, DATABRICKS_TEMPLATES } from "./databricks.js";
 import { AWS_COMPONENTS } from "./aws.js";

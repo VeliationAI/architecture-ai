@@ -60,6 +60,7 @@ const PRIORITIES = [
 const STEPS = ["Goal & platform", "Requirements", "Generate"];
 
 export function IntakeForm() {
+  const setPortfolio = useStudioStore((s) => s.setPortfolio);
   const setGeneration = useStudioStore((s) => s.setGeneration);
   const setInput = useStudioStore((s) => s.setInput);
   const isGenerating = useStudioStore((s) => s.isGenerating);
@@ -119,7 +120,11 @@ export function IntakeForm() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Generation failed");
-      setGeneration(data);
+      if (data.project) {
+        setPortfolio(data);
+      } else {
+        setGeneration(data.generation ?? data);
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Generation failed");
     } finally {

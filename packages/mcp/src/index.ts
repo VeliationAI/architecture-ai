@@ -14,7 +14,9 @@ import { z } from "zod";
 import {
   CustomerInputSchema,
   ArchitectureGraphSchema,
+  DesignVariantSchema,
   generateArchitecture,
+  generatePortfolio,
   reviewArchitecture,
   explainComponent,
   exportToMermaid,
@@ -24,11 +26,17 @@ import {
   runAllRulePacks,
   mergeReviewIntoGraph,
   RULE_PACKS,
+  compareVariants,
+  exportToDbtStub,
+  exportToAdfPipelineStub,
+  exportToDatabricksWorkflowStub,
+  generateDataModelForVariant,
 } from "@architecture-ai/core";
 import {
   getCatalogForPlatform,
   getPlatformKnowledge,
   getAllPlatformKnowledge,
+  DOMAIN_PACKS,
 } from "@architecture-ai/catalog";
 
 const server = new Server(
@@ -164,6 +172,82 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
         required: ["graph_a", "graph_b"],
       },
     },
+    {
+      name: "generate_variants",
+      description: "Generate up to 3 meaningfully different design variants for the same use case with scores and tradeoffs.",
+      inputSchema: {
+        type: "object",
+        properties: {
+          business_goal: { type: "string" },
+          platform_preference: { type: "string" },
+          industry: { type: "string" },
+        },
+        required: ["business_goal"],
+      },
+    },
+    {
+      name: "compare_variants",
+      description: "Compare two design variants with score deltas and component differences.",
+      inputSchema: {
+        type: "object",
+        properties: {
+          variant_a: { type: "object" },
+          variant_b: { type: "object" },
+        },
+        required: ["variant_a", "variant_b"],
+      },
+    },
+    {
+      name: "generate_data_model",
+      description: "Generate conceptual, logical, dimensional model and transforms for a design variant.",
+      inputSchema: {
+        type: "object",
+        properties: {
+          input: { type: "object" },
+          variant: { type: "object" },
+        },
+        required: ["input", "variant"],
+      },
+    },
+    {
+      name: "explain_table",
+      description: "Explain a data model table's purpose, grain, keys, and downstream impact.",
+      inputSchema: {
+        type: "object",
+        properties: {
+          variant: { type: "object" },
+          table_id: { type: "string" },
+        },
+        required: ["variant", "table_id"],
+      },
+    },
+    {
+      name: "export_dbt",
+      description: "Export data model as dbt SQL stubs.",
+      inputSchema: {
+        type: "object",
+        properties: { variant: { type: "object" } },
+        required: ["variant"],
+      },
+    },
+    {
+      name: "export_adf_pipeline_stub",
+      description: "Export architecture as Azure Data Factory pipeline JSON stub.",
+      inputSchema: {
+        type: "object",
+        properties: { graph: { type: "object" } },
+        required: ["graph"],
+      },
+    },
+    {
+      name: "export_databricks_workflow_stub",
+      description: "Export architecture as Databricks workflow JSON stub.",
+      inputSchema: {
+        type: "object",
+        properties: { graph: { type: "object" } },
+        required: ["graph"],
+      },
+    },
   ],
 }));
 
@@ -209,6 +293,12 @@ server.setRequestHandler(ListResourcesRequestSchema, async () => ({
       uri: "knowledge://registry",
       name: "Platform Knowledge Registry",
       description: "All platform knowledge versions and changelogs",
+      mimeType: "application/json",
+    },
+    {
+      uri: "domain-packs://registry",
+      name: "Domain Packs Registry",
+      description: "Finance, insurance, healthcare domain modeling packs",
       mimeType: "application/json",
     },
   ],
@@ -288,6 +378,16 @@ server.setRequestHandler(ReadResourceRequestSchema, async (request) => {
           },
         ],
       };
+    case "domain-packs://registry":
+      return {
+        contents: [
+          {
+            uri,
+            mimeType: "application/json",
+            text: JSON.stringify(DOMAIN_PACKS, null, 2),
+          },
+        ],
+      };
     default:
       throw new Error(`Unknown resource: ${uri}`);
   }
@@ -317,6 +417,19 @@ server.setRequestHandler(ListPromptsRequestSchema, async () => ({
       name: "client_ready_summary",
       description: "Prepare a client-ready architecture summary",
       arguments: [{ name: "graph_json", description: "Architecture graph JSON", required: true }],
+    },
+    {
+      name: "generate_star_schema",
+      description: "Generate dimensional star schema from use case",
+      arguments: [
+        { name: "business_goal", description: "Business goal", required: true },
+        { name: "industry", description: "Industry domain", required: false },
+      ],
+    },
+    {
+      name: "prepare_executive_summary",
+      description: "Prepare executive summary from variant portfolio",
+      arguments: [{ name: "project_json", description: "Design project JSON", required: true }],
     },
   ],
 }));
@@ -369,6 +482,30 @@ server.setRequestHandler(GetPromptRequestSchema, async (request) => {
             content: {
               type: "text",
               text: `Create a client-ready architecture summary from:\n${args?.graph_json ?? "{}"}`,
+            },
+          },
+        ],
+      };
+    case "generate_star_schema":
+      return {
+        messages: [
+          {
+            role: "user",
+            content: {
+              type: "text",
+              text: `Generate a dimensional star schema for ${args?.industry ?? "general"} industry use case: ${args?.business_goal ?? "[describe use case]"}`,
+            },
+          },
+        ],
+      };
+    case "prepare_executive_summary":
+      return {
+        messages: [
+          {
+            role: "user",
+            content: {
+              type: "text",
+              text: `Prepare an executive summary comparing design variants:\n${args?.project_json ?? "{}"}`,
             },
           },
         ],
@@ -490,6 +627,83 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
           edge_count_diff: graphA.edges.length - graphB.edges.length,
         };
         return { content: [{ type: "text", text: JSON.stringify(comparison, null, 2) }] };
+      }
+
+      case "generate_variants": {
+        const input = CustomerInputSchema.parse({
+          business_goal: args?.business_goal,
+          platform_preference: args?.platform_preference ?? "databricks",
+          industry: args?.industry,
+        });
+        const result = await generatePortfolio(input, {
+          apiKey: process.env.OPENAI_API_KEY,
+          model: process.env.OPENAI_MODEL,
+          useMock: process.env.USE_MOCK_LLM === "true",
+        });
+        return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
+      }
+
+      case "compare_variants": {
+        const variantA = DesignVariantSchema.parse(args?.variant_a);
+        const variantB = DesignVariantSchema.parse(args?.variant_b);
+        const comparison = compareVariants(variantA, variantB);
+        return { content: [{ type: "text", text: JSON.stringify(comparison, null, 2) }] };
+      }
+
+      case "generate_data_model": {
+        const input = CustomerInputSchema.parse(args?.input);
+        const variant = DesignVariantSchema.parse(args?.variant);
+        const model = generateDataModelForVariant(input, variant);
+        return { content: [{ type: "text", text: JSON.stringify(model, null, 2) }] };
+      }
+
+      case "explain_table": {
+        const variant = DesignVariantSchema.parse(args?.variant);
+        const tableId = args?.table_id as string;
+        const model = variant.data_model;
+        if (!model) throw new Error("Variant has no data model");
+        const allTables = [
+          ...model.dimensional.facts,
+          ...model.dimensional.dimensions,
+          ...model.dimensional.bridges,
+        ];
+        const table = allTables.find((t) => t.id === tableId);
+        if (!table) throw new Error(`Table ${tableId} not found`);
+        const explanation = {
+          table_id: table.id,
+          name: table.name,
+          table_type: table.table_type,
+          schema_name: table.schema_name,
+          explanation: table.explanation,
+          columns: table.columns.map((c) => ({
+            name: c.name,
+            type: c.data_type,
+            is_key: c.is_key,
+            is_measure: c.is_measure,
+          })),
+          downstream: model.transforms.filter((t) => t.source_tables.includes(tableId)).map((t) => t.name),
+        };
+        return { content: [{ type: "text", text: JSON.stringify(explanation, null, 2) }] };
+      }
+
+      case "export_dbt": {
+        const variant = DesignVariantSchema.parse(args?.variant);
+        const input = CustomerInputSchema.parse({
+          business_goal: variant.title,
+          platform_preference: "databricks",
+        });
+        const model = variant.data_model ?? generateDataModelForVariant(input, variant);
+        return { content: [{ type: "text", text: exportToDbtStub(model) }] };
+      }
+
+      case "export_adf_pipeline_stub": {
+        const graph = ArchitectureGraphSchema.parse(args?.graph);
+        return { content: [{ type: "text", text: exportToAdfPipelineStub(graph) }] };
+      }
+
+      case "export_databricks_workflow_stub": {
+        const graph = ArchitectureGraphSchema.parse(args?.graph);
+        return { content: [{ type: "text", text: exportToDatabricksWorkflowStub(graph) }] };
       }
 
       default:
