@@ -1,75 +1,166 @@
 /**
- * Official-style service icon registry.
- * AWS icons sourced from AWS Architecture Icons via awslabs/aws-icons-for-plantuml (local bundles).
- * Brand icons from Simple Icons. Databricks service icons are custom SVGs matching product palette.
+ * Service icon registry — brand logos + abstract concept icons.
+ * Brand SVGs: Simple Icons (MIT) via scripts/sync-service-icons.mjs
+ * Concept SVGs: custom line-art in public/icons/concepts/
  */
 
 export interface ServiceIconMeta {
   src: string;
   alt: string;
   platform: string;
+  /** White tile background like enterprise architecture diagrams */
+  tile?: boolean;
 }
 
-const AWS = "/icons/aws";
+const BRAND = "/icons/brands";
+const CONCEPT = "/icons/concepts";
 const DBX = "/icons/databricks";
-const AZURE = "/icons/azure";
-const GCP = "/icons/gcp";
-const SNOW = "/icons/snowflake";
 const GENERIC = "/icons/generic";
+
+function brand(file: string, alt: string, platform = "generic"): ServiceIconMeta {
+  return { src: `${BRAND}/${file}.svg`, alt, platform, tile: true };
+}
+
+function concept(file: string, alt: string): ServiceIconMeta {
+  return { src: `${CONCEPT}/${file}.svg`, alt, platform: "generic", tile: true };
+}
+
+function dbx(file: string, alt: string): ServiceIconMeta {
+  const name = file.endsWith(".svg") ? file : `${file}.svg`;
+  return { src: `${DBX}/${name}`, alt, platform: "databricks", tile: true };
+}
 
 /** Component catalog icon keys → bundled asset paths */
 export const ICON_REGISTRY: Record<string, ServiceIconMeta> = {
-  // AWS
-  "aws-redshift": { src: `${AWS}/redshift.png`, alt: "Amazon Redshift", platform: "aws" },
-  "aws-s3": { src: `${AWS}/s3.png`, alt: "Amazon S3", platform: "aws" },
-  "aws-lambda": { src: `${AWS}/lambda.png`, alt: "AWS Lambda", platform: "aws" },
-  "aws-api-gateway": { src: `${AWS}/api-gateway.png`, alt: "Amazon API Gateway", platform: "aws" },
-  "aws-rds": { src: `${AWS}/rds.png`, alt: "Amazon RDS", platform: "aws" },
-  "aws-dynamodb": { src: `${AWS}/dynamodb.png`, alt: "Amazon DynamoDB", platform: "aws" },
-  "aws-cloudwatch": { src: `${AWS}/cloudwatch.png`, alt: "Amazon CloudWatch", platform: "aws" },
-  "aws-ec2": { src: `${AWS}/ec2.png`, alt: "Amazon EC2", platform: "aws" },
-  "aws-ecs": { src: `${AWS}/ecs.png`, alt: "Amazon ECS", platform: "aws" },
-  "aws-eks": { src: `${AWS}/eks.png`, alt: "Amazon EKS", platform: "aws" },
-  "aws-glue": { src: `${AWS}/glue.png`, alt: "AWS Glue", platform: "aws" },
-  "aws-kinesis": { src: `${AWS}/kinesis.png`, alt: "Amazon Kinesis", platform: "aws" },
-  "aws-sagemaker": { src: `${AWS}/sagemaker.png`, alt: "Amazon SageMaker", platform: "aws" },
-  "aws-sqs": { src: `${AWS}/sqs.png`, alt: "Amazon SQS", platform: "aws" },
-  "aws-sns": { src: `${AWS}/sns.png`, alt: "Amazon SNS", platform: "aws" },
-  "aws-eventbridge": { src: `${AWS}/eventbridge.png`, alt: "Amazon EventBridge", platform: "aws" },
-  "aws-step-functions": { src: `${AWS}/step-functions.png`, alt: "AWS Step Functions", platform: "aws" },
-  "aws-waf": { src: `${AWS}/waf.png`, alt: "AWS WAF", platform: "aws" },
-  "aws-iam": { src: `${AWS}/iam.png`, alt: "AWS IAM", platform: "aws" },
-  "aws-secrets-manager": { src: `${AWS}/secrets-manager.png`, alt: "AWS Secrets Manager", platform: "aws" },
-  "aws-brand": { src: `${AWS}/brand.svg`, alt: "AWS", platform: "aws" },
+  // ── Message / streaming ──
+  "brand-kafka": brand("kafka", "Apache Kafka"),
+  "brand-confluent": brand("confluent", "Confluent"),
+  "brand-pulsar": brand("pulsar", "Apache Pulsar"),
+  "brand-msk": brand("msk", "Amazon MSK", "aws"),
+  "brand-kinesis": brand("kinesis", "Amazon Kinesis", "aws"),
+  "brand-azure-event-hubs": brand("azure-event-hubs", "Azure Event Hubs", "azure"),
+  "brand-gcp-pubsub": brand("gcp-pubsub", "Google Cloud Pub/Sub", "gcp"),
+  "brand-rabbitmq": brand("rabbitmq", "RabbitMQ"),
+  "brand-flink": brand("flink", "Apache Flink"),
+  "brand-spark": brand("spark", "Apache Spark"),
 
-  // Databricks
-  "databricks-auto-loader": { src: `${DBX}/auto-loader.svg`, alt: "Auto Loader", platform: "databricks" },
-  "databricks-delta-lake": { src: `${DBX}/delta-lake.svg`, alt: "Delta Lake", platform: "databricks" },
-  "databricks-unity-catalog": { src: `${DBX}/unity-catalog.svg`, alt: "Unity Catalog", platform: "databricks" },
-  "databricks-sql": { src: `${DBX}/sql-warehouse.svg`, alt: "Databricks SQL", platform: "databricks" },
-  "databricks-genie": { src: `${DBX}/genie.svg`, alt: "AI/BI Genie", platform: "databricks" },
-  "databricks-genie-spaces": { src: `${DBX}/genie-spaces.svg`, alt: "Genie Spaces", platform: "databricks" },
-  "databricks-genie-agent": { src: `${DBX}/genie-agent.svg`, alt: "Genie Agent Mode", platform: "databricks" },
-  "databricks-genie-ontology": { src: `${DBX}/genie-ontology.svg`, alt: "Genie Ontology", platform: "databricks" },
-  "databricks-genie-mcp": { src: `${DBX}/mcp.svg`, alt: "Genie MCP", platform: "databricks" },
-  "databricks-mlflow": { src: `${DBX}/mlflow.svg`, alt: "MLflow", platform: "databricks" },
-  "databricks-ai-gateway": { src: `${DBX}/ai-gateway.svg`, alt: "Unity AI Gateway", platform: "databricks" },
-  "databricks-dlt": { src: `${DBX}/dlt.svg`, alt: "Delta Live Tables", platform: "databricks" },
-  "databricks-model-serving": { src: `${DBX}/model-serving.svg`, alt: "Model Serving", platform: "databricks" },
-  "databricks-vector-search": { src: `${DBX}/vector-search.svg`, alt: "Vector Search", platform: "databricks" },
-  "databricks-agent-bricks": { src: `${DBX}/agent-bricks.svg`, alt: "Agent Bricks", platform: "databricks" },
-  "databricks-brand": { src: `${DBX}/brand.png`, alt: "Databricks", platform: "databricks" },
+  // ── Databases ──
+  "brand-sql-server": brand("sql-server", "Microsoft SQL Server", "azure"),
+  "brand-mysql": brand("mysql", "MySQL"),
+  "brand-db2": brand("db2", "IBM DB2"),
+  "brand-postgresql": brand("postgresql", "PostgreSQL"),
+  "brand-mongodb": brand("mongodb", "MongoDB"),
+  "brand-oracle": brand("oracle", "Oracle Database"),
+  "brand-azure-sql": brand("azure-sql", "Azure SQL", "azure"),
+  "brand-rds": brand("rds", "Amazon RDS", "aws"),
+  "brand-snowflake": brand("snowflake", "Snowflake", "snowflake"),
+  "brand-bigquery": brand("bigquery", "Google BigQuery", "gcp"),
+  "brand-dynamodb": brand("dynamodb", "Amazon DynamoDB", "aws"),
+  "brand-redis": brand("redis", "Redis"),
+  "brand-cockroachdb": brand("cockroachdb", "CockroachDB"),
+  "brand-clickhouse": brand("clickhouse", "ClickHouse"),
+  "brand-neo4j": brand("neo4j", "Neo4j"),
+  "brand-supabase": brand("supabase", "Supabase"),
 
-  // Snowflake
-  "snowflake-warehouse": { src: `${SNOW}/warehouse.svg`, alt: "Snowflake Warehouse", platform: "snowflake" },
-  "snowflake-cortex": { src: `${SNOW}/cortex.svg`, alt: "Snowflake Cortex", platform: "snowflake" },
-  "snowflake-brand": { src: `${SNOW}/brand.png`, alt: "Snowflake", platform: "snowflake" },
+  // ── Enterprise apps ──
+  "brand-salesforce": brand("salesforce", "Salesforce"),
+  "brand-workday": brand("workday", "Workday"),
+  "brand-google-analytics": brand("google-analytics", "Google Analytics", "gcp"),
+  "brand-netsuite": brand("netsuite", "Oracle NetSuite"),
+  "brand-servicenow": brand("servicenow", "ServiceNow"),
+  "brand-google-ads": brand("google-ads", "Google Ads", "gcp"),
+  "brand-dynamics-365": brand("dynamics-365", "Microsoft Dynamics 365", "azure"),
+  "brand-sharepoint": brand("sharepoint", "Microsoft SharePoint", "azure"),
+  "brand-sap": brand("sap", "SAP"),
+  "brand-hubspot": brand("hubspot", "HubSpot"),
+  "brand-zendesk": brand("zendesk", "Zendesk"),
+  "brand-shopify": brand("shopify", "Shopify"),
+  "brand-stripe": brand("stripe", "Stripe"),
 
-  // Azure / GCP fallbacks
-  "azure-brand": { src: `${AZURE}/brand.svg`, alt: "Microsoft Azure", platform: "azure" },
-  "gcp-brand": { src: `${GCP}/brand.png`, alt: "Google Cloud", platform: "gcp" },
+  // ── Lakehouse / storage formats ──
+  "brand-parquet": brand("parquet", "Apache Parquet"),
+  "brand-iceberg": brand("iceberg", "Apache Iceberg"),
+  "brand-hadoop": brand("hadoop", "Apache Hadoop"),
+  "brand-hive": brand("hive", "Apache Hive"),
+  "brand-gcs": brand("gcs", "Google Cloud Storage", "gcp"),
+  "brand-s3": brand("s3", "Amazon S3", "aws"),
 
-  // Generic categories
+  // ── Cloud platforms ──
+  "brand-aws": brand("aws", "Amazon Web Services", "aws"),
+  "brand-azure": brand("azure", "Microsoft Azure", "azure"),
+  "brand-gcp": brand("gcp", "Google Cloud", "gcp"),
+  "brand-databricks": brand("databricks", "Databricks", "databricks"),
+
+  // ── AWS services ──
+  "brand-lambda": brand("lambda", "AWS Lambda", "aws"),
+  "brand-redshift": brand("redshift", "Amazon Redshift", "aws"),
+  "brand-glue": brand("glue", "AWS Glue", "aws"),
+
+  // ── Azure data ──
+  "brand-azure-synapse": brand("azure-synapse", "Azure Synapse", "azure"),
+  "brand-azure-data-factory": brand("azure-data-factory", "Azure Data Factory", "azure"),
+  "brand-fabric": brand("fabric", "Microsoft Fabric", "azure"),
+
+  // ── Analytics / BI / ML ──
+  "brand-tableau": brand("tableau", "Tableau"),
+  "brand-power-bi": brand("power-bi", "Power BI", "azure"),
+  "brand-looker": brand("looker", "Looker", "gcp"),
+  "brand-dbt": brand("dbt", "dbt"),
+  "brand-airflow": brand("airflow", "Apache Airflow"),
+  "brand-mlflow": brand("mlflow", "MLflow"),
+  "brand-openai": brand("openai", "OpenAI"),
+  "brand-anthropic": brand("anthropic", "Anthropic"),
+
+  // ── Observability / DevOps ──
+  "brand-datadog": brand("datadog", "Datadog"),
+  "brand-splunk": brand("splunk", "Splunk"),
+  "brand-kubernetes": brand("kubernetes", "Kubernetes"),
+  "brand-docker": brand("docker", "Docker"),
+  "brand-terraform": brand("terraform", "Terraform"),
+  "brand-github": brand("github", "GitHub"),
+  "brand-gitlab": brand("gitlab", "GitLab"),
+
+  // ── Databricks product icons ──
+  "databricks-auto-loader": dbx("auto-loader.svg", "Auto Loader"),
+  "databricks-delta-lake": dbx("delta-lake.svg", "Delta Lake"),
+  "databricks-unity-catalog": dbx("unity-catalog.svg", "Unity Catalog"),
+  "databricks-sql": dbx("sql-warehouse.svg", "Databricks SQL"),
+  "databricks-genie": dbx("genie.svg", "AI/BI Genie"),
+  "databricks-genie-spaces": dbx("genie-spaces.svg", "Genie Spaces"),
+  "databricks-genie-agent": dbx("genie-agent.svg", "Genie Agent Mode"),
+  "databricks-genie-ontology": dbx("genie-ontology.svg", "Genie Ontology"),
+  "databricks-genie-mcp": dbx("mcp.svg", "Genie MCP"),
+  "databricks-mlflow": dbx("mlflow.svg", "MLflow"),
+  "databricks-ai-gateway": dbx("ai-gateway.svg", "Unity AI Gateway"),
+  "databricks-dlt": dbx("dlt.svg", "Delta Live Tables"),
+  "databricks-model-serving": dbx("model-serving.svg", "Model Serving"),
+  "databricks-vector-search": dbx("vector-search.svg", "Vector Search"),
+  "databricks-agent-bricks": dbx("agent-bricks.svg", "Agent Bricks"),
+  "databricks-brand": { src: `${DBX}/brand.png`, alt: "Databricks", platform: "databricks", tile: true },
+
+  // ── Snowflake ──
+  "snowflake-warehouse": { src: "/icons/snowflake/warehouse.svg", alt: "Snowflake Warehouse", platform: "snowflake", tile: true },
+  "snowflake-cortex": { src: "/icons/snowflake/cortex.svg", alt: "Snowflake Cortex", platform: "snowflake", tile: true },
+  "snowflake-brand": { src: "/icons/snowflake/brand.png", alt: "Snowflake", platform: "snowflake", tile: true },
+
+  // ── Abstract concepts (line-art) ──
+  "concept-batch": concept("batch", "Batch ingestion"),
+  "concept-cdc": concept("cdc", "Change Data Capture"),
+  "concept-streaming": concept("streaming", "Streaming"),
+  "concept-streaming-analytics": concept("streaming-analytics", "Streaming analytics"),
+  "concept-bi-reporting": concept("bi-reporting", "BI & reporting"),
+  "concept-data-sharing": concept("data-sharing", "Data sharing"),
+  "concept-ai-apps": concept("ai-apps", "AI applications"),
+  "concept-apps": concept("apps", "Applications"),
+  "concept-ingestion": concept("ingestion", "Data ingestion"),
+  "concept-integration": concept("integration", "Integration"),
+  "concept-customer-churn": concept("customer-churn", "Customer churn prediction"),
+  "concept-customer-segmentation": concept("customer-segmentation", "Customer segmentation"),
+  "concept-hr-analytics": concept("hr-analytics", "HR analytics"),
+  "concept-operational-dashboard": concept("operational-dashboard", "Operational dashboards"),
+  "concept-risk-assessment": concept("risk-assessment", "Risk assessment"),
+
+  // ── Generic category fallbacks ──
   "generic-compute": { src: `${GENERIC}/compute.svg`, alt: "Compute", platform: "generic" },
   "generic-storage": { src: `${GENERIC}/storage.svg`, alt: "Storage", platform: "generic" },
   "generic-networking": { src: `${GENERIC}/networking.svg`, alt: "Networking", platform: "generic" },
@@ -95,51 +186,130 @@ export const COMPONENT_ICON_KEYS: Record<string, string> = {
   "model-serving": "databricks-model-serving",
   "vector-search": "databricks-vector-search",
   "agent-bricks": "databricks-agent-bricks",
-  "api-gateway": "aws-api-gateway",
-  lambda: "aws-lambda",
-  rds: "aws-rds",
-  s3: "aws-s3",
-  cloudwatch: "aws-cloudwatch",
-  redshift: "aws-redshift",
-  glue: "aws-glue",
-  kinesis: "aws-kinesis",
-  sagemaker: "aws-sagemaker",
-  dynamodb: "aws-dynamodb",
-  ec2: "aws-ec2",
-  ecs: "aws-ecs",
-  eks: "aws-eks",
-  waf: "aws-waf",
-  sqs: "aws-sqs",
-  sns: "aws-sns",
+  kafka: "brand-kafka",
+  confluent: "brand-confluent",
+  pulsar: "brand-pulsar",
+  msk: "brand-msk",
+  kinesis: "brand-kinesis",
+  "event-hubs": "brand-azure-event-hubs",
+  pubsub: "brand-gcp-pubsub",
+  "sql-server": "brand-sql-server",
+  mysql: "brand-mysql",
+  db2: "brand-db2",
+  postgresql: "brand-postgresql",
+  mongodb: "brand-mongodb",
+  oracle: "brand-oracle",
+  rds: "brand-rds",
+  snowflake: "brand-snowflake",
+  bigquery: "brand-bigquery",
+  dynamodb: "brand-dynamodb",
+  salesforce: "brand-salesforce",
+  workday: "brand-workday",
+  servicenow: "brand-servicenow",
+  sharepoint: "brand-sharepoint",
+  s3: "brand-s3",
+  lambda: "brand-lambda",
+  redshift: "brand-redshift",
+  glue: "brand-glue",
+  tableau: "brand-tableau",
+  "power-bi": "brand-power-bi",
+  dbt: "brand-dbt",
+  airflow: "brand-airflow",
+  spark: "brand-spark",
+  flink: "brand-flink",
+  parquet: "brand-parquet",
+  iceberg: "brand-iceberg",
 };
 
 /** Fuzzy label matching for LLM-generated node labels */
 const LABEL_PATTERNS: { pattern: RegExp; key: string }[] = [
+  // Message / streaming
+  { pattern: /\bkafka\b/i, key: "brand-kafka" },
+  { pattern: /confluent/i, key: "brand-confluent" },
+  { pattern: /pulsar/i, key: "brand-pulsar" },
+  { pattern: /\bmsk\b|managed streaming/i, key: "brand-msk" },
+  { pattern: /kinesis/i, key: "brand-kinesis" },
+  { pattern: /event hub/i, key: "brand-azure-event-hubs" },
+  { pattern: /pub\/sub|pubsub/i, key: "brand-gcp-pubsub" },
+  { pattern: /rabbitmq|rabbit mq/i, key: "brand-rabbitmq" },
+  { pattern: /\bflink\b/i, key: "brand-flink" },
+  { pattern: /\bspark\b|pyspark/i, key: "brand-spark" },
+  // Ingestion patterns
+  { pattern: /\bbatch\b(?!.*live)/i, key: "concept-batch" },
+  { pattern: /\bcdc\b|change data capture/i, key: "concept-cdc" },
+  { pattern: /streaming analytics/i, key: "concept-streaming-analytics" },
+  { pattern: /\bstreaming\b|real.?time|realtime/i, key: "concept-streaming" },
+  // Databases
+  { pattern: /sql server|mssql/i, key: "brand-sql-server" },
+  { pattern: /\bmysql\b/i, key: "brand-mysql" },
+  { pattern: /\bdb2\b/i, key: "brand-db2" },
+  { pattern: /postgres/i, key: "brand-postgresql" },
+  { pattern: /mongo/i, key: "brand-mongodb" },
+  { pattern: /\boracle\b(?!.*netsuite)/i, key: "brand-oracle" },
+  { pattern: /azure sql/i, key: "brand-azure-sql" },
+  { pattern: /\brds\b|relational database service/i, key: "brand-rds" },
+  { pattern: /snowflake/i, key: "brand-snowflake" },
+  { pattern: /bigquery|big query/i, key: "brand-bigquery" },
+  { pattern: /dynamodb|dynamo db/i, key: "brand-dynamodb" },
+  { pattern: /\bredis\b/i, key: "brand-redis" },
+  { pattern: /clickhouse/i, key: "brand-clickhouse" },
+  { pattern: /neo4j/i, key: "brand-neo4j" },
+  { pattern: /supabase/i, key: "brand-supabase" },
+  // Enterprise apps
+  { pattern: /salesforce|sfdc/i, key: "brand-salesforce" },
+  { pattern: /workday/i, key: "brand-workday" },
+  { pattern: /google analytics|\bga4\b/i, key: "brand-google-analytics" },
+  { pattern: /netsuite/i, key: "brand-netsuite" },
+  { pattern: /servicenow|service now/i, key: "brand-servicenow" },
+  { pattern: /google ads/i, key: "brand-google-ads" },
+  { pattern: /dynamics\s*365|d365/i, key: "brand-dynamics-365" },
+  { pattern: /sharepoint/i, key: "brand-sharepoint" },
+  { pattern: /\bsap\b/i, key: "brand-sap" },
+  { pattern: /hubspot/i, key: "brand-hubspot" },
+  { pattern: /zendesk/i, key: "brand-zendesk" },
+  { pattern: /shopify/i, key: "brand-shopify" },
+  { pattern: /stripe/i, key: "brand-stripe" },
+  // Lakehouse / formats
+  { pattern: /parquet/i, key: "brand-parquet" },
+  { pattern: /iceberg/i, key: "brand-iceberg" },
+  { pattern: /\bhive\b/i, key: "brand-hive" },
+  { pattern: /hadoop|hdfs/i, key: "brand-hadoop" },
+  { pattern: /cloud storage|\bgcs\b/i, key: "brand-gcs" },
+  { pattern: /\bs3\b|simple storage/i, key: "brand-s3" },
+  // Azure data
+  { pattern: /synapse/i, key: "brand-azure-synapse" },
+  { pattern: /data factory|\badf\b/i, key: "brand-azure-data-factory" },
+  { pattern: /\bfabric\b|one lake/i, key: "brand-fabric" },
+  // Analytics / BI / ML
+  { pattern: /tableau/i, key: "brand-tableau" },
+  { pattern: /power bi|powerbi/i, key: "brand-power-bi" },
+  { pattern: /looker(?!.*studio)/i, key: "brand-looker" },
+  { pattern: /\bdbt\b/i, key: "brand-dbt" },
+  { pattern: /airflow/i, key: "brand-airflow" },
+  { pattern: /datadog/i, key: "brand-datadog" },
+  { pattern: /splunk/i, key: "brand-splunk" },
+  { pattern: /kubernetes|\bk8s\b|\beks\b|\baks\b|\bgke\b/i, key: "brand-kubernetes" },
+  { pattern: /docker|container/i, key: "brand-docker" },
+  { pattern: /terraform|\biac\b/i, key: "brand-terraform" },
+  { pattern: /\bopenai\b|chatgpt|gpt-4/i, key: "brand-openai" },
+  { pattern: /anthropic|claude/i, key: "brand-anthropic" },
+  { pattern: /\bbi\b|business intelligence|reporting dashboard/i, key: "concept-bi-reporting" },
+  { pattern: /data sharing|marketplace|delta share/i, key: "concept-data-sharing" },
+  { pattern: /ai app|ml app|intelligent app/i, key: "concept-ai-apps" },
+  // Use cases
+  { pattern: /churn/i, key: "concept-customer-churn" },
+  { pattern: /segmentation|customer segment/i, key: "concept-customer-segmentation" },
+  { pattern: /hr analytics|workforce/i, key: "concept-hr-analytics" },
+  { pattern: /operational dashboard|ops dashboard/i, key: "concept-operational-dashboard" },
+  { pattern: /risk assess|risk optim/i, key: "concept-risk-assessment" },
   // AWS
-  { pattern: /redshift/i, key: "aws-redshift" },
-  { pattern: /\bs3\b|simple storage/i, key: "aws-s3" },
-  { pattern: /lambda/i, key: "aws-lambda" },
-  { pattern: /api gateway/i, key: "aws-api-gateway" },
-  { pattern: /\brds\b|relational database/i, key: "aws-rds" },
-  { pattern: /dynamodb/i, key: "aws-dynamodb" },
-  { pattern: /cloudwatch|cloud watch/i, key: "aws-cloudwatch" },
-  { pattern: /\bec2\b/i, key: "aws-ec2" },
-  { pattern: /\becs\b/i, key: "aws-ecs" },
-  { pattern: /\beks\b|kubernetes/i, key: "aws-eks" },
-  { pattern: /glue/i, key: "aws-glue" },
-  { pattern: /kinesis/i, key: "aws-kinesis" },
-  { pattern: /sagemaker/i, key: "aws-sagemaker" },
-  { pattern: /\bsqs\b/i, key: "aws-sqs" },
-  { pattern: /\bsns\b/i, key: "aws-sns" },
-  { pattern: /eventbridge/i, key: "aws-eventbridge" },
-  { pattern: /step functions/i, key: "aws-step-functions" },
-  { pattern: /\bwaf\b|web application firewall/i, key: "aws-waf" },
-  { pattern: /\biam\b|identity and access/i, key: "aws-iam" },
-  { pattern: /secrets manager/i, key: "aws-secrets-manager" },
+  { pattern: /redshift/i, key: "brand-redshift" },
+  { pattern: /lambda/i, key: "brand-lambda" },
+  { pattern: /glue/i, key: "brand-glue" },
   // Databricks
   { pattern: /auto loader/i, key: "databricks-auto-loader" },
   { pattern: /delta live tables|\bdlt\b/i, key: "databricks-dlt" },
-  { pattern: /delta lake|\bdelta\b/i, key: "databricks-delta-lake" },
+  { pattern: /delta lake|\bdelta\b(?!.*share)/i, key: "databricks-delta-lake" },
   { pattern: /unity catalog/i, key: "databricks-unity-catalog" },
   { pattern: /sql warehouse|databricks sql/i, key: "databricks-sql" },
   { pattern: /genie spaces/i, key: "databricks-genie-spaces" },
@@ -152,10 +322,8 @@ const LABEL_PATTERNS: { pattern: RegExp; key: string }[] = [
   { pattern: /model serving/i, key: "databricks-model-serving" },
   { pattern: /agent bricks/i, key: "databricks-agent-bricks" },
   { pattern: /\bmcp\b/i, key: "databricks-genie-mcp" },
-  // Snowflake
   { pattern: /snowflake.*warehouse|warehouse.*snowflake/i, key: "snowflake-warehouse" },
   { pattern: /cortex|snowflake.*ai/i, key: "snowflake-cortex" },
-  { pattern: /snowflake/i, key: "snowflake-brand" },
 ];
 
 const CATEGORY_FALLBACK: Record<string, string> = {
@@ -164,21 +332,22 @@ const CATEGORY_FALLBACK: Record<string, string> = {
   networking: "generic-networking",
   governance: "generic-governance",
   genai: "generic-genai",
-  ml: "generic-genai",
+  ml: "concept-ai-apps",
   observability: "generic-observability",
   security: "generic-governance",
-  ingestion: "databricks-auto-loader",
-  serving: "databricks-sql",
+  ingestion: "concept-ingestion",
+  serving: "concept-bi-reporting",
   orchestration: "databricks-dlt",
-  integration: "databricks-genie-mcp",
+  integration: "concept-integration",
+  other: "concept-apps",
 };
 
 const PLATFORM_BRAND: Record<string, string> = {
-  aws: "aws-brand",
+  aws: "brand-aws",
   databricks: "databricks-brand",
-  azure: "azure-brand",
-  gcp: "gcp-brand",
-  snowflake: "snowflake-brand",
+  azure: "brand-azure",
+  gcp: "brand-gcp",
+  snowflake: "brand-snowflake",
 };
 
 export function getIconByKey(iconKey: string): ServiceIconMeta | null {
@@ -218,4 +387,9 @@ export function resolveServiceIcon(options: {
   }
 
   return getIconByKey("generic-compute")!;
+}
+
+/** List all registered icons (for docs / debugging) */
+export function listRegisteredIcons(): ServiceIconMeta[] {
+  return Object.values(ICON_REGISTRY);
 }

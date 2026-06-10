@@ -71,6 +71,7 @@ function buildFlowNodes(
         description: node.description,
         iconSrc: iconMeta.src,
         iconAlt: iconMeta.alt,
+        iconTile: iconMeta.tile,
       },
       selected: node.id === selectedNodeId,
     };

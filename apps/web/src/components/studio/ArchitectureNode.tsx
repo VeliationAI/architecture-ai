@@ -13,6 +13,7 @@ export interface ArchNodeData {
   description: string;
   iconSrc?: string;
   iconAlt?: string;
+  iconTile?: boolean;
 }
 
 const LEVEL_STYLES: Record<string, { border: string; dot: string }> = {
@@ -42,9 +43,14 @@ function ArchitectureNodeComponent({ data, selected }: NodeProps) {
       <div className="px-3.5 py-3">
         <div className="flex items-start gap-2.5 mb-2">
           {d.iconSrc ? (
-            <ServiceIcon src={d.iconSrc} alt={d.iconAlt ?? d.label} size={32} />
+            <ServiceIcon
+              src={d.iconSrc}
+              alt={d.iconAlt ?? d.label}
+              size={36}
+              tile={d.iconTile !== false}
+            />
           ) : (
-            <div className="w-8 h-8 rounded-md bg-[var(--background-elevated)] border border-[var(--border-subtle)]" />
+            <div className="w-9 h-9 rounded-md bg-white border border-[var(--border-subtle)]" />
           )}
           <div className="min-w-0 flex-1">
             <p className="font-semibold text-xs leading-snug text-[var(--foreground)]">{d.label}</p>
