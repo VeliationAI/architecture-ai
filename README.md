@@ -129,6 +129,15 @@ To add a new platform technique, edit `packages/catalog/src/platform-knowledge/d
 - Azure, GCP, Snowflake rule packs
 - LLM application patterns (routing, grounding, evaluation)
 
+## Contributors
+
+| Name | LinkedIn |
+|------|----------|
+| [Akhil Vydyula](https://www.linkedin.com/in/akhilvydyula/) | Core contributor |
+| [Sai Sankara Thamma](https://www.linkedin.com/in/sankara-reddy-thamma-18a6a6ba/) | Core contributor |
+
+See [CONTRIBUTORS.md](./CONTRIBUTORS.md) for the full list and contribution guidelines.
+
 ## License
 
 Private — Veliation AI

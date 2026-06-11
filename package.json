@@ -2,6 +2,11 @@
   "name": "architecture-ai",
   "version": "0.1.0",
   "private": true,
+  "author": "Akhil Vydyula (https://www.linkedin.com/in/akhilvydyula/)",
+  "contributors": [
+    "Akhil Vydyula <https://www.linkedin.com/in/akhilvydyula/>",
+    "Sai Sankara Thamma <https://www.linkedin.com/in/sankara-reddy-thamma-18a6a6ba/>"
+  ],
   "workspaces": [
     "apps/*",
     "packages/*"
