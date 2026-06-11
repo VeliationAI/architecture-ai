@@ -18,7 +18,7 @@ Set in `apps/web/.env.local`:
 
 ```bash
 # YouTube, Loom, or direct MP4/WebM URL
-NEXT_PUBLIC_DEMO_VIDEO_URL=https://www.youtube.com/watch?v=YOUR_VIDEO_ID
+NEXT_PUBLIC_DEMO_VIDEO_URL=https://youtu.be/WgZOvAV58i8
 ```
 
 YouTube and Loom links are embedded automatically. Direct `.mp4` / `.webm` URLs use the HTML5 video player.

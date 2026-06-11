@@ -5,6 +5,7 @@ import { Play } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const DEFAULT_LOCAL_SRC = "/demo/demo.mp4";
+const DEFAULT_DEMO_URL = "https://youtu.be/WgZOvAV58i8";
 
 function youtubeEmbedUrl(url: string): string | null {
   try {
@@ -42,7 +43,7 @@ function isDirectVideo(url: string): boolean {
 }
 
 export function DemoVideo() {
-  const configured = process.env.NEXT_PUBLIC_DEMO_VIDEO_URL?.trim();
+  const configured = (process.env.NEXT_PUBLIC_DEMO_VIDEO_URL?.trim() || DEFAULT_DEMO_URL);
   const [localFailed, setLocalFailed] = useState(false);
 
   const embed = useMemo(() => {

@@ -15,19 +15,13 @@ Hosted on [Render](https://render.com) from the `main` branch with mock LLM mode
 
 ## Demo
 
-Record a short walkthrough (intake → variants → canvas → export) and add it using one of these options:
+[![Watch the demo](https://img.youtube.com/vi/WgZOvAV58i8/maxresdefault.jpg)](https://youtu.be/WgZOvAV58i8)
 
-| Method | Steps |
-|--------|--------|
-| **Local file** | Save as `apps/web/public/demo/demo.mp4` — shows on the landing page automatically |
-| **YouTube / Loom** | Set `NEXT_PUBLIC_DEMO_VIDEO_URL` in `apps/web/.env.local` |
-| **README embed** | Upload to GitHub and paste the markdown link below this table |
+**Watch on YouTube:** [https://youtu.be/WgZOvAV58i8](https://youtu.be/WgZOvAV58i8)
 
-```markdown
-https://user-images.githubusercontent.com/.../demo.mp4
-```
+Walkthrough: intake → variants → canvas → review → export.
 
-Details: [apps/web/public/demo/README.md](apps/web/public/demo/README.md)
+To use a different video, set `NEXT_PUBLIC_DEMO_VIDEO_URL` in `apps/web/.env.local` or `render.yaml`. Details: [apps/web/public/demo/README.md](apps/web/public/demo/README.md)
 
 ## Features
 

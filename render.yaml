@@ -15,6 +15,8 @@ services:
         value: "true"
       - key: NEXT_PUBLIC_APP_URL
         value: https://architecture-ai.onrender.com
+      - key: NEXT_PUBLIC_DEMO_VIDEO_URL
+        value: https://youtu.be/WgZOvAV58i8
       # Optional — enable real OpenAI generation (mark as secret in Dashboard)
       # - key: OPENAI_API_KEY
       #   sync: false
