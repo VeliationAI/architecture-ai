@@ -29,10 +29,11 @@ function ArchitectureNodeComponent({ data, selected }: NodeProps) {
   return (
     <div
       className={cn(
-        "rounded-[var(--radius-sm)] border border-[var(--border)] bg-[var(--card)] shadow-[var(--shadow)]",
-        "min-w-[200px] max-w-[240px] transition-all duration-200 border-l-[3px]",
+        "rounded-[var(--radius-sm)] border bg-[var(--card)] shadow-[var(--shadow)]",
+        "min-w-[210px] max-w-[250px] transition-all duration-200 border-l-[3px]",
+        "hover:shadow-[var(--shadow-lg)] hover:border-[var(--border)]",
         level.border,
-        selected && "ring-2 ring-[var(--accent)] ring-offset-2 ring-offset-[var(--background)] scale-[1.02]"
+        selected && "ring-2 ring-[var(--accent)] ring-offset-2 ring-offset-[var(--background-elevated)] scale-[1.02] shadow-[var(--shadow-glow)]"
       )}
     >
       <Handle
@@ -54,7 +55,9 @@ function ArchitectureNodeComponent({ data, selected }: NodeProps) {
           )}
           <div className="min-w-0 flex-1">
             <p className="font-semibold text-xs leading-snug text-[var(--foreground)]">{d.label}</p>
-            <p className="text-[10px] text-[var(--muted)] mt-0.5 capitalize">{d.category}</p>
+            <span className="inline-block text-[9px] px-1.5 py-0.5 rounded bg-[var(--background-elevated)] text-[var(--muted)] capitalize mt-0.5">
+              {d.category}
+            </span>
           </div>
         </div>
         <div className="flex items-center gap-1.5">

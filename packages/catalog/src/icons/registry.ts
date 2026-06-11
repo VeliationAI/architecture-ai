@@ -85,11 +85,17 @@ export const ICON_REGISTRY: Record<string, ServiceIconMeta> = {
   "brand-gcs": brand("gcs", "Google Cloud Storage", "gcp"),
   "brand-s3": brand("s3", "Amazon S3", "aws"),
 
-  // ── Cloud platforms ──
+  // ── Cloud platforms (intake + canvas) ──
   "brand-aws": brand("aws", "Amazon Web Services", "aws"),
   "brand-azure": brand("azure", "Microsoft Azure", "azure"),
   "brand-gcp": brand("gcp", "Google Cloud", "gcp"),
   "brand-databricks": brand("databricks", "Databricks", "databricks"),
+  /** @deprecated use brand-* keys — kept for backward compatibility */
+  "aws-brand": brand("aws", "Amazon Web Services", "aws"),
+  "azure-brand": brand("azure", "Microsoft Azure", "azure"),
+  "gcp-brand": brand("gcp", "Google Cloud", "gcp"),
+  "databricks-brand": brand("databricks", "Databricks", "databricks"),
+  "snowflake-brand": brand("snowflake", "Snowflake", "snowflake"),
 
   // ── AWS services ──
   "brand-lambda": brand("lambda", "AWS Lambda", "aws"),
@@ -136,12 +142,10 @@ export const ICON_REGISTRY: Record<string, ServiceIconMeta> = {
   "databricks-model-serving": dbx("model-serving.svg", "Model Serving"),
   "databricks-vector-search": dbx("vector-search.svg", "Vector Search"),
   "databricks-agent-bricks": dbx("agent-bricks.svg", "Agent Bricks"),
-  "databricks-brand": { src: `${DBX}/brand.png`, alt: "Databricks", platform: "databricks", tile: true },
 
-  // ── Snowflake ──
+  // ── Snowflake product icons ──
   "snowflake-warehouse": { src: "/icons/snowflake/warehouse.svg", alt: "Snowflake Warehouse", platform: "snowflake", tile: true },
   "snowflake-cortex": { src: "/icons/snowflake/cortex.svg", alt: "Snowflake Cortex", platform: "snowflake", tile: true },
-  "snowflake-brand": { src: "/icons/snowflake/brand.png", alt: "Snowflake", platform: "snowflake", tile: true },
 
   // ── Abstract concepts (line-art) ──
   "concept-batch": concept("batch", "Batch ingestion"),
@@ -344,7 +348,7 @@ const CATEGORY_FALLBACK: Record<string, string> = {
 
 const PLATFORM_BRAND: Record<string, string> = {
   aws: "brand-aws",
-  databricks: "databricks-brand",
+  databricks: "brand-databricks",
   azure: "brand-azure",
   gcp: "brand-gcp",
   snowflake: "brand-snowflake",

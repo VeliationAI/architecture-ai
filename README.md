@@ -1,8 +1,26 @@
 # Architecture AI Studio
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+
 Turn use cases into **explainable target architectures** with platform-native best practice review. Not just diagramming — architecture intelligence.
 
 **Prompt → typed graph → canvas → suggestion rail → click-to-explain → export & MCP**
+
+## Demo
+
+Record a short walkthrough (intake → variants → canvas → export) and add it using one of these options:
+
+| Method | Steps |
+|--------|--------|
+| **Local file** | Save as `apps/web/public/demo/demo.mp4` — shows on the landing page automatically |
+| **YouTube / Loom** | Set `NEXT_PUBLIC_DEMO_VIDEO_URL` in `apps/web/.env.local` |
+| **README embed** | Upload to GitHub and paste the markdown link below this table |
+
+```markdown
+https://user-images.githubusercontent.com/.../demo.mp4
+```
+
+Details: [apps/web/public/demo/README.md](apps/web/public/demo/README.md)
 
 ## Features
 
@@ -140,4 +158,4 @@ See [CONTRIBUTORS.md](./CONTRIBUTORS.md) for the full list and contribution guid
 
 ## License
 
-Private — Veliation AI
+[MIT License](LICENSE) — Copyright (c) 2026 Akhil Vydyula, Sai Sankara Thamma, and contributors.

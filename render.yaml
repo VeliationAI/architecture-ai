@@ -1,0 +1,22 @@
+services:
+  - type: web
+    name: architecture-ai
+    runtime: node
+    plan: free
+    region: oregon
+    branch: main
+    buildCommand: npm install && npm run build
+    startCommand: npm run start
+    healthCheckPath: /
+    envVars:
+      - key: NODE_VERSION
+        value: "20"
+      - key: USE_MOCK_LLM
+        value: "true"
+      - key: NEXT_PUBLIC_APP_URL
+        sync: false
+      # Optional — enable real OpenAI generation (mark as secret in Dashboard)
+      # - key: OPENAI_API_KEY
+      #   sync: false
+      # - key: OPENAI_MODEL
+      #   value: gpt-4o-mini

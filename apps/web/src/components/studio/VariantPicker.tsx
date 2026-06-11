@@ -88,7 +88,7 @@ export function VariantPicker({ bundle }: { bundle: VariantBundle }) {
   const compareId = useStudioStore((s) => s.compareVariantId);
   const adoptVariant = useStudioStore((s) => s.adoptVariant);
   const setCompareVariant = useStudioStore((s) => s.setCompareVariant);
-  const setWorkArea = useStudioStore((s) => s.setWorkArea);
+  const setWorkspaceView = useStudioStore((s) => s.setWorkspaceView);
 
   const selectedId = compareId ?? activeId ?? bundle.default_recommendation;
 
@@ -109,7 +109,7 @@ export function VariantPicker({ bundle }: { bundle: VariantBundle }) {
             isDefault={bundle.default_recommendation === variant.variant_id}
             onSelect={() => {
               setCompareVariant(variant.variant_id);
-              setWorkArea("architecture");
+              setWorkspaceView("canvas");
             }}
             onAdopt={() => adoptVariant(variant.variant_id)}
           />

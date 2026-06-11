@@ -1,7 +1,8 @@
 {
   "name": "architecture-ai",
   "version": "0.1.0",
-  "private": true,
+  "license": "MIT",
+  "private": false,
   "author": "Akhil Vydyula (https://www.linkedin.com/in/akhilvydyula/)",
   "contributors": [
     "Akhil Vydyula <https://www.linkedin.com/in/akhilvydyula/>",

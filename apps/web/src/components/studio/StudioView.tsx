@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useMemo } from "react";
 import { useStudioStore } from "@/lib/store";
 import { ArchitectureCanvas } from "./ArchitectureCanvas";
 import { SuggestionRail } from "./SuggestionRail";
@@ -8,28 +8,24 @@ import { NodeDetailPanel } from "./NodeDetailPanel";
 import { ReviewScores } from "./ReviewScores";
 import { ExportPanel } from "./ExportPanel";
 import { PlatformKnowledgeBadge } from "./PlatformKnowledgeBadge";
-import { ProjectNavigator } from "./ProjectNavigator";
+import { ProjectNavigator, ProjectNavigatorSimple, WorkspaceMobileNav } from "./ProjectNavigator";
 import { VariantPicker } from "./VariantPicker";
 import { CompareView } from "./CompareView";
 import { ModelView } from "./ModelView";
 import { ApprovalPanel } from "./ApprovalPanel";
 import { Button } from "@/components/ui/button";
-import { Tabs } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import {
   Loader2,
   Shield,
-  PanelRightOpen,
-  PanelRightClose,
   Lightbulb,
   ListChecks,
   AlertTriangle,
   LayoutGrid,
+  Sparkles,
 } from "lucide-react";
 import { relayoutGraph, getActiveVariant } from "@architecture-ai/core";
-import { cn } from "@/lib/utils";
-
-type SideTab = "variants" | "suggestions" | "review" | "summary" | "export" | "approve";
+import { getWorkspaceMeta } from "./workspace-nav";
 
 export function StudioView() {
   const project = useStudioStore((s) => s.project);
@@ -44,14 +40,9 @@ export function StudioView() {
   const layoutKey = useStudioStore((s) => s.layoutKey);
   const reset = useStudioStore((s) => s.reset);
   const setIsReviewing = useStudioStore((s) => s.setIsReviewing);
-  const workArea = useStudioStore((s) => s.workArea);
-  const studioMode = useStudioStore((s) => s.studioMode);
+  const workspaceView = useStudioStore((s) => s.workspaceView);
+  const setWorkspaceView = useStudioStore((s) => s.setWorkspaceView);
   const compareVariantId = useStudioStore((s) => s.compareVariantId);
-  const setWorkArea = useStudioStore((s) => s.setWorkArea);
-  const setStudioMode = useStudioStore((s) => s.setStudioMode);
-
-  const [sideTab, setSideTab] = useState<SideTab>(project ? "variants" : "suggestions");
-  const [panelOpen, setPanelOpen] = useState(true);
 
   const previewVariant = useMemo(() => {
     if (!project) return undefined;
@@ -62,13 +53,12 @@ export function StudioView() {
   const displayGraph = previewVariant?.architecture_graph ?? graph;
   const activeVariant = project ? getActiveVariant(project) : undefined;
   const dataModel = previewVariant?.data_model ?? activeVariant?.data_model;
+  const viewMeta = getWorkspaceMeta(workspaceView);
 
   const handleReview = async () => {
     if (!displayGraph) return;
     setIsReviewing(true);
-    setSideTab("review");
-    setStudioMode("review");
-    setPanelOpen(true);
+    setWorkspaceView("review");
     try {
       const res = await fetch("/api/review", {
         method: "POST",
@@ -87,9 +77,18 @@ export function StudioView() {
 
   if (!displayGraph) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[calc(100vh-56px)] gap-4 p-6 text-center">
-        <p className="text-sm text-[var(--muted)]">No architecture loaded for this session.</p>
-        <Button variant="primary" onClick={reset}>
+      <div className="flex flex-col items-center justify-center min-h-[calc(100vh-56px)] gap-5 p-8 text-center animate-fade-in">
+        <div className="w-16 h-16 rounded-2xl bg-[var(--accent-muted)] flex items-center justify-center">
+          <LayoutGrid className="w-8 h-8 text-[var(--accent)]" />
+        </div>
+        <div>
+          <p className="text-base font-medium mb-1">No architecture loaded</p>
+          <p className="text-sm text-[var(--muted)] max-w-sm">
+            Start a new project from the intake form or pick one from your history.
+          </p>
+        </div>
+        <Button variant="primary" onClick={reset} className="gap-2">
+          <Sparkles className="w-4 h-4" />
           Start new architecture
         </Button>
       </div>
@@ -113,7 +112,7 @@ export function StudioView() {
 
   return (
     <div className="flex flex-col h-[calc(100vh-56px)] animate-fade-in">
-      <div className="flex items-center justify-between gap-3 px-4 py-2.5 border-b border-[var(--border-subtle)] bg-[var(--card)]/80">
+      <div className="flex items-center justify-between gap-3 px-4 py-3 border-b border-[var(--border-subtle)] bg-[var(--card)]/90 backdrop-blur-sm">
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2 flex-wrap">
             <h2 className="font-semibold text-sm truncate">{displayGraph.title ?? "Architecture"}</h2>
@@ -150,129 +149,146 @@ export function StudioView() {
             {isReviewing ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Shield className="w-3.5 h-3.5" />}
             <span className="hidden sm:inline">Review</span>
           </Button>
-          <Button
-            size="icon"
-            variant="outline"
-            onClick={() => setPanelOpen(!panelOpen)}
-            className="lg:hidden"
-          >
-            {panelOpen ? <PanelRightClose className="w-4 h-4" /> : <PanelRightOpen className="w-4 h-4" />}
-          </Button>
         </div>
       </div>
 
-      <div className="flex flex-1 min-h-0 relative">
-        {project && <ProjectNavigator project={project} />}
+      <WorkspaceMobileNav hasProject={!!project} />
 
-        <div className="flex-1 flex flex-col min-w-0">
-          {workArea === "architecture" && (
-            <div className="flex-1 p-3 sm:p-4 min-h-0 relative">
-              <ArchitectureCanvas graph={displayGraph} layoutKey={layoutKey} />
-              <div className="absolute bottom-6 left-6 hidden sm:flex gap-3 p-2 rounded-[var(--radius-sm)] glass border border-[var(--border-subtle)] text-[10px] text-[var(--muted)]">
-                <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-sm bg-red-500/80" /> Required</span>
-                <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-sm bg-amber-500/80" /> Recommended</span>
-                <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-sm bg-emerald-500/80" /> Optional</span>
-              </div>
-            </div>
+      <div className="flex flex-1 min-h-0">
+        {project ? <ProjectNavigator project={project} /> : <ProjectNavigatorSimple />}
+
+        <div className="flex-1 flex flex-col min-w-0 min-h-0">
+          {viewMeta && workspaceView !== "canvas" && (
+            <WorkspaceHeader title={viewMeta.label} description={viewMeta.description} />
           )}
 
-          {workArea === "compare" && project && (
-            <CompareView
-              variants={project.variant_bundle.variants}
-              activeId={project.active_variant_id}
-            />
-          )}
-
-          {workArea === "model" && dataModel && <ModelView model={dataModel} />}
-          {workArea === "model" && !dataModel && (
-            <div className="flex-1 flex items-center justify-center text-sm text-[var(--muted)] p-8">
-              No data model for this variant yet.
-            </div>
-          )}
-
-          {workArea === "architecture" && selectedNodeId && (
-            <div className="border-t border-[var(--border-subtle)] bg-[var(--card)] max-h-[35vh] overflow-hidden animate-slide-up">
-              <NodeDetailPanel />
-            </div>
-          )}
-        </div>
-
-        <aside
-          className={cn(
-            "border-l border-[var(--border-subtle)] bg-[var(--card)] flex flex-col min-h-0 transition-all duration-300",
-            "fixed lg:relative inset-y-0 right-0 z-30 lg:z-auto",
-            panelOpen ? "w-full sm:w-96 translate-x-0" : "w-0 translate-x-full lg:translate-x-0 lg:w-0 overflow-hidden"
-          )}
-        >
-          <div className="p-3 border-b border-[var(--border-subtle)]">
-            <Tabs
-              tabs={[
-                ...(project ? [{ id: "variants", label: "Variants", count: project.variant_bundle.variants.length }] : []),
-                { id: "suggestions", label: "Improve", count: uniqueSuggestions.length },
-                { id: "review", label: "Review", count: review ? 1 : 0 },
-                ...(project ? [{ id: "approve", label: "Approve" }] : []),
-                { id: "summary", label: "Summary" },
-                { id: "export", label: "Export" },
-              ]}
-              active={sideTab}
-              onChange={(id) => {
-                setSideTab(id as SideTab);
-                if (id === "approve") setStudioMode("approve");
-                if (id === "variants") setWorkArea("architecture");
-              }}
-            />
-          </div>
-
-          <div className="flex-1 overflow-y-auto">
-            {sideTab === "variants" && project && (
-              <VariantPicker bundle={project.variant_bundle} />
-            )}
-            {sideTab === "suggestions" && <SuggestionRail suggestions={uniqueSuggestions} />}
-            {sideTab === "review" && (
-              review ? (
-                <ReviewScores review={review} />
-              ) : (
-                <EmptyPanel
-                  icon={Shield}
-                  title="No review yet"
-                  desc="Run a well-architected review to score your design."
-                  action={
-                    <Button size="sm" onClick={handleReview} disabled={isReviewing} className="gap-1.5 mt-3">
-                      {isReviewing ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Shield className="w-3.5 h-3.5" />}
-                      Run review
-                    </Button>
-                  }
-                />
-              )
-            )}
-            {sideTab === "approve" && project && <ApprovalPanel project={project} />}
-            {sideTab === "summary" && (
-              <div className="p-4 space-y-4">
-                {project?.variant_bundle.risks_and_gaps && project.variant_bundle.risks_and_gaps.length > 0 && (
-                  <SummarySection icon={AlertTriangle} title="Risks & gaps" items={project.variant_bundle.risks_and_gaps} />
+          <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
+            {workspaceView === "canvas" && (
+              <>
+                <div className="flex-1 p-3 sm:p-4 min-h-0 relative">
+                  <ArchitectureCanvas graph={displayGraph} layoutKey={layoutKey} />
+                  <div className="absolute bottom-6 left-6 hidden sm:flex gap-3 p-2 rounded-[var(--radius-sm)] glass border border-[var(--border-subtle)] text-[10px] text-[var(--muted)]">
+                    <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-sm bg-red-500/80" /> Required</span>
+                    <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-sm bg-amber-500/80" /> Recommended</span>
+                    <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-sm bg-emerald-500/80" /> Optional</span>
+                  </div>
+                </div>
+                {selectedNodeId && (
+                  <div className="border-t border-[var(--border-subtle)] bg-[var(--card)] max-h-[35vh] overflow-hidden animate-slide-up">
+                    <NodeDetailPanel />
+                  </div>
                 )}
-                {(project?.variant_bundle.next_best_actions ?? generation?.next_best_actions)?.length ? (
-                  <SummarySection
-                    icon={ListChecks}
-                    title="Next actions"
-                    items={project?.variant_bundle.next_best_actions ?? generation?.next_best_actions ?? []}
+              </>
+            )}
+
+            {workspaceView === "variants" && project && (
+              <div className="flex-1 overflow-y-auto">
+                <VariantPicker bundle={project.variant_bundle} />
+              </div>
+            )}
+
+            {workspaceView === "compare" && project && (
+              <CompareView
+                variants={project.variant_bundle.variants}
+                activeId={project.active_variant_id}
+              />
+            )}
+
+            {workspaceView === "model" && dataModel && (
+              <ModelView model={dataModel} />
+            )}
+            {workspaceView === "model" && !dataModel && (
+              <EmptyWorkspace
+                title="No data model"
+                desc="This variant does not include a data model yet."
+              />
+            )}
+
+            {workspaceView === "improve" && (
+              <div className="flex-1 overflow-y-auto">
+                {uniqueSuggestions.length > 0 ? (
+                  <SuggestionRail suggestions={uniqueSuggestions} />
+                ) : (
+                  <EmptyWorkspace
+                    icon={Lightbulb}
+                    title="No suggestions yet"
+                    desc="Generate or review your architecture to get improvement ideas."
                   />
-                ) : null}
-                {previewVariant?.key_tradeoffs && previewVariant.key_tradeoffs.length > 0 && (
-                  <SummarySection icon={Lightbulb} title="Key tradeoffs" items={previewVariant.key_tradeoffs} />
                 )}
               </div>
             )}
-            {sideTab === "export" && (
-              <ExportPanel graph={displayGraph} dataModel={dataModel} />
+
+            {workspaceView === "review" && (
+              <div className="flex-1 overflow-y-auto">
+                {review ? (
+                  <ReviewScores review={review} />
+                ) : (
+                  <EmptyWorkspace
+                    icon={Shield}
+                    title="No review yet"
+                    desc="Run a well-architected review to score your design."
+                    action={
+                      <Button size="sm" onClick={handleReview} disabled={isReviewing} className="gap-1.5 mt-3">
+                        {isReviewing ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Shield className="w-3.5 h-3.5" />}
+                        Run review
+                      </Button>
+                    }
+                  />
+                )}
+              </div>
+            )}
+
+            {workspaceView === "approve" && project && (
+              <div className="flex-1 overflow-y-auto">
+                <ApprovalPanel project={project} />
+              </div>
+            )}
+
+            {workspaceView === "summary" && (
+              <div className="flex-1 overflow-y-auto p-6 max-w-3xl">
+                <div className="space-y-6">
+                  {project?.variant_bundle.risks_and_gaps && project.variant_bundle.risks_and_gaps.length > 0 && (
+                    <SummarySection icon={AlertTriangle} title="Risks & gaps" items={project.variant_bundle.risks_and_gaps} />
+                  )}
+                  {(project?.variant_bundle.next_best_actions ?? generation?.next_best_actions)?.length ? (
+                    <SummarySection
+                      icon={ListChecks}
+                      title="Next actions"
+                      items={project?.variant_bundle.next_best_actions ?? generation?.next_best_actions ?? []}
+                    />
+                  ) : null}
+                  {previewVariant?.key_tradeoffs && previewVariant.key_tradeoffs.length > 0 && (
+                    <SummarySection icon={Lightbulb} title="Key tradeoffs" items={previewVariant.key_tradeoffs} />
+                  )}
+                  {!project?.variant_bundle.risks_and_gaps?.length &&
+                    !(project?.variant_bundle.next_best_actions ?? generation?.next_best_actions)?.length &&
+                    !previewVariant?.key_tradeoffs?.length && (
+                      <EmptyWorkspace
+                        title="No summary yet"
+                        desc="Generate a project to see risks, tradeoffs, and recommended next steps."
+                      />
+                    )}
+                </div>
+              </div>
+            )}
+
+            {workspaceView === "export" && (
+              <div className="flex-1 overflow-y-auto">
+                <ExportPanel graph={displayGraph} dataModel={dataModel} />
+              </div>
             )}
           </div>
-        </aside>
-
-        {panelOpen && (
-          <div className="fixed inset-0 bg-black/40 z-20 lg:hidden" onClick={() => setPanelOpen(false)} />
-        )}
+        </div>
       </div>
+    </div>
+  );
+}
+
+function WorkspaceHeader({ title, description }: { title: string; description: string }) {
+  return (
+    <div className="px-4 py-3 border-b border-[var(--border-subtle)] bg-[var(--background-elevated)]/50 shrink-0">
+      <h3 className="text-sm font-semibold">{title}</h3>
+      <p className="text-xs text-[var(--muted)] mt-0.5">{description}</p>
     </div>
   );
 }
@@ -303,25 +319,27 @@ function SummarySection({
   );
 }
 
-function EmptyPanel({
-  icon: Icon,
+function EmptyWorkspace({
+  icon: Icon = LayoutGrid,
   title,
   desc,
   action,
 }: {
-  icon: typeof Shield;
+  icon?: typeof Shield;
   title: string;
   desc: string;
   action?: React.ReactNode;
 }) {
   return (
-    <div className="p-8 text-center">
-      <div className="w-12 h-12 rounded-full bg-[var(--accent-muted)] flex items-center justify-center mx-auto mb-3">
-        <Icon className="w-5 h-5 text-[var(--accent)]" />
+    <div className="flex-1 flex items-center justify-center p-8">
+      <div className="text-center max-w-sm">
+        <div className="w-12 h-12 rounded-full bg-[var(--accent-muted)] flex items-center justify-center mx-auto mb-3">
+          <Icon className="w-5 h-5 text-[var(--accent)]" />
+        </div>
+        <p className="text-sm font-medium mb-1">{title}</p>
+        <p className="text-xs text-[var(--muted)] leading-relaxed">{desc}</p>
+        {action}
       </div>
-      <p className="text-sm font-medium mb-1">{title}</p>
-      <p className="text-xs text-[var(--muted)] leading-relaxed">{desc}</p>
-      {action}
     </div>
   );
 }

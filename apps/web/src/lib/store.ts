@@ -27,6 +27,18 @@ import {
 
 export type { StudioMode, WorkArea };
 
+/** Single workspace view — left nav opens content in the main center panel */
+export type WorkspaceView =
+  | "canvas"
+  | "variants"
+  | "compare"
+  | "model"
+  | "improve"
+  | "review"
+  | "approve"
+  | "summary"
+  | "export";
+
 function upsertHistory(history: HistoryEntry[], entry: HistoryEntry): HistoryEntry[] {
   const index = history.findIndex((h) => h.id === entry.id);
   if (index === -1) return [entry, ...history];
@@ -52,8 +64,10 @@ interface StudioState {
   isReviewing: boolean;
   isExplaining: boolean;
   layoutKey: number;
-  studioMode: StudioMode;
-  workArea: WorkArea;
+  workspaceView: WorkspaceView;
+  /** @deprecated legacy — kept for persisted state migration */
+  studioMode?: StudioMode;
+  workArea?: WorkArea;
   _hasHydrated: boolean;
 
   setStep: (step: "intake" | "studio") => void;
@@ -65,7 +79,10 @@ interface StudioState {
   adoptVariant: (variantId: string) => void;
   updateActiveVariant: (updater: (v: DesignVariant) => DesignVariant) => void;
   setCompareVariant: (id: string | null) => void;
+  setWorkspaceView: (view: WorkspaceView) => void;
+  /** @deprecated use setWorkspaceView */
   setStudioMode: (mode: StudioMode) => void;
+  /** @deprecated use setWorkspaceView */
   setWorkArea: (area: WorkArea) => void;
   bumpLayoutKey: () => void;
   setReview: (review: ReviewResult | null) => void;
@@ -127,8 +144,7 @@ export const useStudioStore = create<StudioState>()(
       isExplaining: false,
       _hasHydrated: false,
       layoutKey: 0,
-      studioMode: "generate",
-      workArea: "architecture",
+      workspaceView: "canvas",
 
       setHasHydrated: (v) => set({ _hasHydrated: v }),
       bumpLayoutKey: () => set((s) => ({ layoutKey: s.layoutKey + 1 })),
@@ -151,8 +167,7 @@ export const useStudioStore = create<StudioState>()(
           compareVariantId: null,
           nodeExplanation: null,
           layoutKey: get().layoutKey + 1,
-          studioMode: "compare",
-          workArea: "architecture",
+          workspaceView: "variants",
         });
       },
 
@@ -318,8 +333,28 @@ export const useStudioStore = create<StudioState>()(
       },
 
       setCompareVariant: (id) => set({ compareVariantId: id }),
-      setStudioMode: (mode) => set({ studioMode: mode }),
-      setWorkArea: (area) => set({ workArea: area }),
+
+      setWorkspaceView: (view) => set({ workspaceView: view }),
+
+      setStudioMode: (mode) => {
+        const map: Record<StudioMode, WorkspaceView> = {
+          generate: "improve",
+          compare: "variants",
+          review: "review",
+          approve: "approve",
+          export: "export",
+        };
+        set({ workspaceView: map[mode] });
+      },
+
+      setWorkArea: (area) => {
+        const map: Record<WorkArea, WorkspaceView> = {
+          architecture: "canvas",
+          compare: "compare",
+          model: "model",
+        };
+        set({ workspaceView: map[area] });
+      },
 
       setSelectedNodeId: (id) => set({ selectedNodeId: id, nodeExplanation: null }),
       setSelectedTableId: (id) => set({ selectedTableId: id }),
@@ -358,7 +393,7 @@ export const useStudioStore = create<StudioState>()(
           selectedTableId: null,
           compareVariantId: null,
           nodeExplanation: null,
-          workArea: "architecture",
+          workspaceView: entry.project ? "canvas" : "canvas",
         });
       },
 
@@ -401,8 +436,7 @@ export const useStudioStore = create<StudioState>()(
           isGenerating: false,
           isReviewing: false,
           isExplaining: false,
-          studioMode: "generate",
-          workArea: "architecture",
+          workspaceView: "canvas",
         }),
     }),
     {
@@ -417,8 +451,7 @@ export const useStudioStore = create<StudioState>()(
         review: state.review,
         history: state.history,
         activeHistoryId: state.activeHistoryId,
-        studioMode: state.studioMode,
-        workArea: state.workArea,
+        workspaceView: state.workspaceView,
       }),
       onRehydrateStorage: () => (state, error) => {
         if (error) {
@@ -426,6 +459,17 @@ export const useStudioStore = create<StudioState>()(
           state?.reset();
         } else if (state?.step === "studio" && !state?.graph) {
           state.setStep("intake");
+        } else if (state && !state.workspaceView) {
+          // Migrate legacy persisted navigation
+          const legacy = state as StudioState & { workArea?: WorkArea; studioMode?: StudioMode };
+          if (legacy.workArea === "compare") state.setWorkspaceView("compare");
+          else if (legacy.workArea === "model") state.setWorkspaceView("model");
+          else if (legacy.studioMode === "review") state.setWorkspaceView("review");
+          else if (legacy.studioMode === "approve") state.setWorkspaceView("approve");
+          else if (legacy.studioMode === "export") state.setWorkspaceView("export");
+          else if (legacy.studioMode === "compare") state.setWorkspaceView("variants");
+          else if (legacy.studioMode === "generate") state.setWorkspaceView("improve");
+          else state.setWorkspaceView("canvas");
         }
         state?.setHasHydrated(true);
       },
