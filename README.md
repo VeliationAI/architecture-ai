@@ -1,8 +1,15 @@
 # Architecture AI Studio
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-architecture--ai.onrender.com-46E3B7?style=flat-square)](https://architecture-ai.onrender.com/)
 
 Turn use cases into **explainable target architectures** with platform-native best practice review. Not just diagramming — architecture intelligence.
+
+## Live app
+
+**Try it now:** [https://architecture-ai.onrender.com/](https://architecture-ai.onrender.com/)
+
+Hosted on [Render](https://render.com) from the `main` branch with mock LLM mode — no API key required to explore the studio.
 
 **Prompt → typed graph → canvas → suggestion rail → click-to-explain → export & MCP**
 

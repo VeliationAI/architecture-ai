@@ -3,6 +3,14 @@
   "version": "0.1.0",
   "license": "MIT",
   "private": false,
+  "homepage": "https://architecture-ai.onrender.com/",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/VeliationAI/architecture-ai.git"
+  },
+  "bugs": {
+    "url": "https://github.com/VeliationAI/architecture-ai/issues"
+  },
   "author": "Akhil Vydyula (https://www.linkedin.com/in/akhilvydyula/)",
   "contributors": [
     "Akhil Vydyula <https://www.linkedin.com/in/akhilvydyula/>",

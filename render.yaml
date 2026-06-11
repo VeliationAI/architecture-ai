@@ -14,7 +14,7 @@ services:
       - key: USE_MOCK_LLM
         value: "true"
       - key: NEXT_PUBLIC_APP_URL
-        sync: false
+        value: https://architecture-ai.onrender.com
       # Optional — enable real OpenAI generation (mark as secret in Dashboard)
       # - key: OPENAI_API_KEY
       #   sync: false
